@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+"""Converts a csv file passed as argument to a
+CHIP-0007 compliant json file.
+It further calculates the sha256 of the json file
+and appends it to each line in the csv
+"""
+import csv
+import json
+import hashlib
+import pandas as pd
+from sys import argv
+from typing import Dict, List
+
+
+defaultData = {
+        "format": "CHIP-0007",
+        "name": "",
+        "description": "",
+        "minting_tool": "Team x",
+        "sensitive_content": False,
+        "series_number": 0,
+        "series_total": 526,
+        "attributes": [
+            {
+                "trait_type": "gender",
+                "value": ""
+            }
+        ],
+        "collection": {
+        "name": "Zuri NFT Tickets for Free Lunch",
+        "id": "b774f676-c1d5-422e-beed-00ef5510c64d",
+        "attributes": [
+            {
+                "type": "description",
+                "value": "Rewards for accomplishments during HNGi9."
+            }
+        ]
+    }
+}
+
+
+def convert(csvFile: str, jsonFile: str) -> None:
+    """Converts the csv file to json
+
+    Args:
+        csvFile: Path to the csvFile to convert
+        jsonFile: Path to json file to write to
+    """
+    df = pd.read_csv(csvFile)
+    df_output = df.copy()
+    defaultData["series_total"] = len(df) # The total number of NFTs in csv file
+    df.columns = df.columns.str.lower() # clean data column headings
+    data = defaultData.copy()
+    json_data = []
+    myhash = []
+
+    for index, row in df.iterrows():
+        # Handles different naming conventions of file
+        try:
+            name = row["filename"]
+        except KeyError:
+            name = row["file name"]
+
+        try:
+            desc = row["description"]
+        except KeyError:
+            desc = row["descriptor"]
+
+        try:
+            series = row["series number"]
+        except KeyError:
+            series = row["serial number"]
+
+        data["name"] = name
+        data["description"] = desc
+        data["series_number"] = series
+        data["attributes"][0]["value"] = row["gender"]
+        myhash.append(calculateSHA(data))
+        mydata = data.copy()
+
+        json_data.append(mydata)
+
+    with open(jsonFile, 'w', encoding='utf-8') as f:
+        f.write(json.dumps(json_data, indent=4))
+
+    df_output["Hash"] = myhash
+    outputFile = csvFile.split('.')[0] + ".output.csv"
+    df_output.to_csv(outputFile, index=False)
+
+
+def calculateSHA(jsonData: Dict) -> str:
+    """Calculates the SHA256 hash of the json data
+
+    Args:
+        jsonData: Dictionary to get hash of
+    """
+    return hashlib.sha256(json.dumps(jsonData).encode()).hexdigest()
+
+
+if __name__ == '__main__':    
+    if len(argv) != 2:
+        print("Usage: convert filename.csv")
+    else:
+        csvFile = argv[1]
+        jsonFile = csvFile.split('.')[0] + ".json"
+        convert(csvFile, jsonFile)
