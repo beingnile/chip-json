@@ -4,12 +4,11 @@ CHIP-0007 compliant json file.
 It further calculates the sha256 of the json file
 and appends it to each line in the csv
 """
-import csv
 import json
 import hashlib
 import pandas as pd
 from sys import argv
-from typing import Dict, List
+from typing import Dict
 
 
 defaultData = {
@@ -27,15 +26,15 @@ defaultData = {
             }
         ],
         "collection": {
-        "name": "Zuri NFT Tickets for Free Lunch",
-        "id": "b774f676-c1d5-422e-beed-00ef5510c64d",
-        "attributes": [
-            {
-                "type": "description",
-                "value": "Rewards for accomplishments during HNGi9."
-            }
-        ]
-    }
+            "name": "Zuri NFT Tickets for Free Lunch",
+            "id": "b774f676-c1d5-422e-beed-00ef5510c64d",
+            "attributes": [
+                {
+                    "type": "description",
+                    "value": "Rewards for accomplishments during HNGi9."
+                }
+            ]
+        }
 }
 
 
@@ -48,8 +47,8 @@ def convert(csvFile: str, jsonFile: str) -> None:
     """
     df = pd.read_csv(csvFile)
     df_output = df.copy()
-    defaultData["series_total"] = len(df) # The total number of NFTs in csv file
-    df.columns = df.columns.str.lower() # clean data column headings
+    defaultData["series_total"] = len(df)
+    df.columns = df.columns.str.lower()  # clean data column headings
     data = defaultData.copy()
     json_data = []
     myhash = []
@@ -97,7 +96,7 @@ def calculateSHA(jsonData: Dict) -> str:
     return hashlib.sha256(json.dumps(jsonData).encode()).hexdigest()
 
 
-if __name__ == '__main__':    
+if __name__ == '__main__':
     if len(argv) != 2:
         print("Usage: convert filename.csv")
     else:
