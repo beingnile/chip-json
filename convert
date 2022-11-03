@@ -100,6 +100,9 @@ if __name__ == '__main__':
     if len(argv) != 2:
         print("Usage: convert filename.csv")
     else:
-        csvFile = argv[1]
-        jsonFile = csvFile.split('.')[0] + ".json"
-        convert(csvFile, jsonFile)
+        if argv[1].split('.')[-1] != "csv":
+            print("Input a valid csv file")
+        else:
+            csvFile = argv[1]
+            jsonFile = csvFile.split('.')[0] + ".json"
+            convert(csvFile, jsonFile)
